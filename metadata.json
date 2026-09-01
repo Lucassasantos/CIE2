@@ -1,0 +1,8 @@
+{
+  "name": "App Mobile - Início, Indique, Carteiras e Avisos",
+  "description": "Aplicativo mobile com abas de Início, Indique, Carteiras e Avisos, com suporte completo a links diretos e tags HTML de imagens.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
