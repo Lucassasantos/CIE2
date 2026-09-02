@@ -15,6 +15,7 @@ import { parseImageInput } from '../../utils/imageParser';
 import { StudentPhotoSlot } from '../StudentPhotoSlot';
 import { VerticalTextSlot } from '../VerticalTextSlot';
 import { useEditMode } from '../../context/EditModeContext';
+import { EditableText } from '../EditableText';
 
 interface InicioTabProps {
   [key: string]: any;
@@ -184,7 +185,7 @@ export const InicioTab: React.FC<InicioTabProps> = () => {
             {/* Front Side Badge */}
             <div className="absolute top-3 left-3 z-30 pointer-events-none">
               <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-black/60 text-white backdrop-blur-md border border-white/20">
-                Frente
+                <EditableText id="badge_frente" defaultText="Frente" />
               </span>
             </div>
 
@@ -299,7 +300,7 @@ export const InicioTab: React.FC<InicioTabProps> = () => {
 
                   <div className="space-y-1">
                     <h3 className="text-base font-bold text-slate-800 tracking-tight">
-                      Foto da Frente
+                      <EditableText id="title_foto_frente" defaultText="Foto da Frente" />
                     </h3>
                     <p className="text-xs text-slate-500 leading-relaxed">
                       {isEditMode 
@@ -308,7 +309,7 @@ export const InicioTab: React.FC<InicioTabProps> = () => {
                     </p>
                   </div>
 
-                  {isEditMode ? (
+                  {isEditMode && (
                     <div className="flex flex-col gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
@@ -326,17 +327,6 @@ export const InicioTab: React.FC<InicioTabProps> = () => {
                       >
                         <LinkIcon className="w-4 h-4 text-[#178596]" />
                         <span>Inserir Link da Imagem</span>
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="pt-2" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        type="button"
-                        onClick={toggleEditMode}
-                        className="w-full py-2 px-3 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
-                      >
-                        <Unlock className="w-3.5 h-3.5" />
-                        <span>Liberar Edição para Adicionar</span>
                       </button>
                     </div>
                   )}
@@ -402,7 +392,7 @@ export const InicioTab: React.FC<InicioTabProps> = () => {
             {/* Back Side Badge */}
             <div className="absolute top-3 left-3 z-30 pointer-events-none">
               <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#178596] text-white backdrop-blur-md border border-white/20">
-                Verso
+                <EditableText id="badge_verso" defaultText="Verso" />
               </span>
             </div>
 
@@ -511,7 +501,7 @@ export const InicioTab: React.FC<InicioTabProps> = () => {
 
                   <div className="space-y-1">
                     <h3 className="text-base font-bold text-slate-800 tracking-tight">
-                      Foto do Verso
+                      <EditableText id="title_foto_verso" defaultText="Foto do Verso" />
                     </h3>
                     <p className="text-xs text-slate-500 leading-relaxed">
                       {isEditMode 
@@ -520,7 +510,7 @@ export const InicioTab: React.FC<InicioTabProps> = () => {
                     </p>
                   </div>
 
-                  {isEditMode ? (
+                  {isEditMode && (
                     <div className="flex flex-col gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
@@ -538,17 +528,6 @@ export const InicioTab: React.FC<InicioTabProps> = () => {
                       >
                         <LinkIcon className="w-4 h-4 text-[#178596]" />
                         <span>Inserir Link do Verso</span>
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="pt-2" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        type="button"
-                        onClick={toggleEditMode}
-                        className="w-full py-2 px-3 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
-                      >
-                        <Unlock className="w-3.5 h-3.5" />
-                        <span>Liberar Edição para Adicionar</span>
                       </button>
                     </div>
                   )}
@@ -592,7 +571,13 @@ export const InicioTab: React.FC<InicioTabProps> = () => {
         className="text-xs sm:text-sm text-slate-500 font-medium text-center select-none cursor-pointer hover:text-[#178596] transition-colors"
         onClick={() => setIsFlipped(!isFlipped)}
       >
-        Toque na carteirinha para exibir o lado oposto ({isFlipped ? 'vendo Verso' : 'vendo Frente'})
+        <EditableText
+          id="text_touch_hint_label"
+          defaultText="Toque na carteirinha para exibir o lado oposto"
+        />
+        <span className="ml-1 text-[11px] text-slate-400">
+          ({isFlipped ? 'vendo Verso' : 'vendo Frente'})
+        </span>
       </p>
     </div>
   );

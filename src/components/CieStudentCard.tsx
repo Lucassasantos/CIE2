@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { StudentCieData } from '../types';
 import { useEditMode } from '../context/EditModeContext';
+import { EditableText } from './EditableText';
 
 interface CieStudentCardProps {
   cieData: StudentCieData;
@@ -88,10 +89,10 @@ export const CieStudentCard: React.FC<CieStudentCardProps> = ({
                 </div>
                 <div>
                   <div className="text-[10px] font-extrabold tracking-widest text-teal-200 uppercase leading-none">
-                    DOCUMENTO NACIONAL DO ESTUDANTE
+                    <EditableText id="cie_top_title" defaultText="DOCUMENTO NACIONAL DO ESTUDANTE" />
                   </div>
                   <div className="text-[9px] font-medium text-teal-100/80 leading-tight">
-                    CIE • LEI FEDERAL Nº 12.933/2013
+                    <EditableText id="cie_top_subtitle" defaultText="CIE • LEI FEDERAL Nº 12.933/2013" />
                   </div>
                 </div>
               </div>
@@ -99,7 +100,7 @@ export const CieStudentCard: React.FC<CieStudentCardProps> = ({
               {/* Status Badge */}
               <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/25 border border-emerald-400/40 text-emerald-200 text-[10px] font-bold">
                 <BadgeCheck className="w-3.5 h-3.5 text-emerald-300" />
-                <span>VÁLIDA</span>
+                <span><EditableText id="cie_status_label" defaultText="VÁLIDA" /></span>
               </div>
             </div>
 
@@ -137,36 +138,44 @@ export const CieStudentCard: React.FC<CieStudentCardProps> = ({
                 <div>
                   <span className="text-[9px] uppercase font-bold text-teal-200/90 block">Nome do Estudante</span>
                   <div className="text-xs sm:text-sm font-extrabold text-white tracking-tight truncate">
-                    {cieData.name}
+                    <EditableText id="cie_student_name" defaultText={cieData.name} />
                   </div>
                 </div>
 
                 <div>
                   <span className="text-[9px] uppercase font-bold text-teal-200/90 block">Instituição de Ensino</span>
                   <div className="text-[11px] font-bold text-teal-50 truncate">
-                    {cieData.institution}
+                    <EditableText id="cie_student_institution" defaultText={cieData.institution} />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-[10px]">
                   <div>
                     <span className="text-[8px] uppercase font-semibold text-teal-200/80 block">Curso</span>
-                    <span className="font-bold text-white truncate block">{cieData.course}</span>
+                    <span className="font-bold text-white truncate block">
+                      <EditableText id="cie_student_course" defaultText={cieData.course} />
+                    </span>
                   </div>
                   <div>
                     <span className="text-[8px] uppercase font-semibold text-teal-200/80 block">Nível</span>
-                    <span className="font-bold text-white truncate block">{cieData.educationLevel}</span>
+                    <span className="font-bold text-white truncate block">
+                      <EditableText id="cie_student_level" defaultText={cieData.educationLevel} />
+                    </span>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-[10px]">
                   <div>
                     <span className="text-[8px] uppercase font-semibold text-teal-200/80 block">Matrícula</span>
-                    <span className="font-mono font-bold text-teal-100 truncate block">{cieData.registrationNumber}</span>
+                    <span className="font-mono font-bold text-teal-100 truncate block">
+                      <EditableText id="cie_student_registration" defaultText={cieData.registrationNumber} />
+                    </span>
                   </div>
                   <div>
                     <span className="text-[8px] uppercase font-semibold text-teal-200/80 block">Validade</span>
-                    <span className="font-bold text-emerald-300 truncate block">{cieData.validUntil}</span>
+                    <span className="font-bold text-emerald-300 truncate block">
+                      <EditableText id="cie_student_valid_until" defaultText={cieData.validUntil} />
+                    </span>
                   </div>
                 </div>
               </div>
@@ -195,7 +204,7 @@ export const CieStudentCard: React.FC<CieStudentCardProps> = ({
             <div className="pt-2 border-t border-white/20 flex items-center justify-between text-[9px] text-teal-100/90 font-mono">
               <div className="flex items-center gap-1">
                 <ShieldCheck className="w-3 h-3 text-emerald-300" />
-                <span>DNV: <strong>{cieData.dnvCode}</strong></span>
+                <span>DNV: <strong><EditableText id="cie_student_dnv" defaultText={cieData.dnvCode} /></strong></span>
                 <button
                   type="button"
                   onClick={handleCopyDnv}
@@ -206,7 +215,7 @@ export const CieStudentCard: React.FC<CieStudentCardProps> = ({
                 </button>
               </div>
               <span className="text-[8px] uppercase font-sans text-teal-200/80 tracking-tight">
-                {cieData.issuerEntity}
+                <EditableText id="cie_student_issuer" defaultText={cieData.issuerEntity} />
               </span>
             </div>
           </div>
@@ -216,41 +225,53 @@ export const CieStudentCard: React.FC<CieStudentCardProps> = ({
             <div className="flex items-center justify-between pb-2 border-b border-white/15">
               <div className="flex items-center gap-1.5 text-xs font-bold text-teal-200">
                 <ShieldCheck className="w-4 h-4 text-teal-400" />
-                <span>CERTIFICAÇÃO DIGITAL PADRÃO ITI / ICP-BRASIL</span>
+                <span><EditableText id="cie_back_cert_title" defaultText="CERTIFICAÇÃO DIGITAL PADRÃO ITI / ICP-BRASIL" /></span>
               </div>
-              <span className="text-[9px] font-mono text-teal-300">{cieData.certificateNumber}</span>
+              <span className="text-[9px] font-mono text-teal-300">
+                <EditableText id="cie_back_cert_number" defaultText={cieData.certificateNumber} />
+              </span>
             </div>
 
             <div className="grid grid-cols-2 gap-3 py-2 text-[10px]">
               <div className="space-y-1">
                 <div>
                   <span className="text-[8px] text-slate-400 uppercase">RG do Titular</span>
-                  <div className="font-bold text-white font-mono">{cieData.rg}</div>
+                  <div className="font-bold text-white font-mono">
+                    <EditableText id="cie_back_rg" defaultText={cieData.rg} />
+                  </div>
                 </div>
                 <div>
                   <span className="text-[8px] text-slate-400 uppercase">CPF Mascarado</span>
-                  <div className="font-bold text-white font-mono">{cieData.cpfMasked}</div>
+                  <div className="font-bold text-white font-mono">
+                    <EditableText id="cie_back_cpf" defaultText={cieData.cpfMasked} />
+                  </div>
                 </div>
                 <div>
                   <span className="text-[8px] text-slate-400 uppercase">Data de Nascimento</span>
-                  <div className="font-bold text-white">{cieData.birthDate}</div>
+                  <div className="font-bold text-white">
+                    <EditableText id="cie_back_birthdate" defaultText={cieData.birthDate} />
+                  </div>
                 </div>
               </div>
 
               <div className="space-y-1">
                 <div>
                   <span className="text-[8px] text-slate-400 uppercase">Órgão Emissor Oficial</span>
-                  <div className="font-bold text-white">{cieData.issuerEntity}</div>
+                  <div className="font-bold text-white">
+                    <EditableText id="cie_back_issuer_entity" defaultText={cieData.issuerEntity} />
+                  </div>
                 </div>
                 <div>
                   <span className="text-[8px] text-slate-400 uppercase">Chave de Autenticidade</span>
                   <div className="font-mono text-[9px] text-teal-300 break-all leading-tight">
-                    SHA256: 9F8A...21DE
+                    <EditableText id="cie_back_auth_key" defaultText="SHA256: 9F8A...21DE" />
                   </div>
                 </div>
                 <div>
                   <span className="text-[8px] text-slate-400 uppercase">Selo de Segurança</span>
-                  <div className="font-bold text-emerald-400 text-[9px]">{cieData.securitySeal}</div>
+                  <div className="font-bold text-emerald-400 text-[9px]">
+                    <EditableText id="cie_back_security_seal" defaultText={cieData.securitySeal} />
+                  </div>
                 </div>
               </div>
             </div>

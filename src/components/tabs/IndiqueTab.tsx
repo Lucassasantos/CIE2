@@ -17,6 +17,7 @@ import {
 import { InvitedFriend } from '../../types';
 import { formatCurrency } from '../../utils/imageParser';
 import { DirectHtmlImageCard } from '../DirectHtmlImageCard';
+import { EditableText } from '../EditableText';
 
 interface IndiqueTabProps {
   friends: InvitedFriend[];
@@ -93,9 +94,11 @@ export const IndiqueTab: React.FC<IndiqueTabProps> = ({
       {/* Referral Code & Share Link Box */}
       <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs space-y-4">
         <div className="text-center space-y-1">
-          <h2 className="text-sm font-bold text-slate-900">Seu Código de Indicação Exclusivo</h2>
+          <h2 className="text-sm font-bold text-slate-900">
+            <EditableText id="indique_box_title" defaultText="Seu Código de Indicação Exclusivo" />
+          </h2>
           <p className="text-xs text-slate-500">
-            Envie para seus contatos e ganhe bônus direto no seu saldo
+            <EditableText id="indique_box_subtitle" defaultText="Envie para seus contatos e ganhe bônus direto no seu saldo" />
           </p>
         </div>
 

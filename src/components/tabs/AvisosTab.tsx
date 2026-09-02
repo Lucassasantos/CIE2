@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { NotificationItem } from '../../types';
 import { DirectHtmlImageCard } from '../DirectHtmlImageCard';
+import { EditableText } from '../EditableText';
 
 interface AvisosTabProps {
   notifications: NotificationItem[];
@@ -75,7 +76,7 @@ export const AvisosTab: React.FC<AvisosTabProps> = ({
         <div>
           <h2 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
             <Bell className="w-4 h-4 text-[#178596]" />
-            Central de Avisos
+            <EditableText id="avisos_tab_title" defaultText="Central de Avisos" />
           </h2>
           <p className="text-xs text-slate-500">
             {unreadCount > 0 ? `${unreadCount} novas mensagens não lidas` : 'Todas as mensagens lidas'}

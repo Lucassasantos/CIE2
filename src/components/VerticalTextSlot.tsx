@@ -770,31 +770,33 @@ export const VerticalTextSlot: React.FC<VerticalTextSlotProps> = ({
         );
       })}
 
-      {/* Floating Manager Badge on Top Right */}
-      <div 
-        onClick={(e) => e.stopPropagation()} 
-        className="absolute top-11 right-3 z-30 flex items-center gap-1"
-      >
-        <button
-          type="button"
-          onClick={handleAddNewLine}
-          className="p-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white text-[10px] flex items-center gap-1 backdrop-blur-md border border-white/20 shadow-sm"
-          title="Adicionar mais uma linha vertical"
+      {/* Floating Manager Badge on Top Right - ONLY VISIBLE IN EDIT MODE */}
+      {isEditMode && (
+        <div 
+          onClick={(e) => e.stopPropagation()} 
+          className="absolute top-11 right-3 z-30 flex items-center gap-1"
         >
-          <Plus className="w-3 h-3 text-teal-300" />
-          <span>+ Linha</span>
-        </button>
+          <button
+            type="button"
+            onClick={handleAddNewLine}
+            className="p-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white text-[10px] flex items-center gap-1 backdrop-blur-md border border-white/20 shadow-sm"
+            title="Adicionar mais uma linha vertical"
+          >
+            <Plus className="w-3 h-3 text-teal-300" />
+            <span>+ Linha</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={handleResetToDefault}
-          className="p-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-slate-300 hover:text-white text-[10px] flex items-center gap-1 backdrop-blur-md border border-white/20 shadow-sm"
-          title="Restaurar as 5 linhas originais"
-        >
-          <RotateCcw className="w-3 h-3 text-slate-300" />
-          <span>Restaurar (5)</span>
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={handleResetToDefault}
+            className="p-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-slate-300 hover:text-white text-[10px] flex items-center gap-1 backdrop-blur-md border border-white/20 shadow-sm"
+            title="Restaurar as 5 linhas originais"
+          >
+            <RotateCcw className="w-3 h-3 text-slate-300" />
+            <span>Restaurar (5)</span>
+          </button>
+        </div>
+      )}
 
       {/* MODAL / DIALOG FOR DETAILED FONT AND STYLE CUSTOMIZATION */}
       {modalItem && (

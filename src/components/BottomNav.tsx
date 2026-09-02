@@ -1,6 +1,7 @@
 import React from 'react';
 import { Home, UserPlus, Wallet, Bell } from 'lucide-react';
 import { TabType } from '../types';
+import { EditableText } from './EditableText';
 
 interface BottomNavProps {
   activeTab: TabType;
@@ -78,7 +79,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                   isActive ? 'font-bold text-[#178596]' : 'text-slate-600'
                 }`}
               >
-                {item.label}
+                <EditableText id={`nav_item_${item.id}`} defaultText={item.label} />
               </span>
 
               {/* Active Indicator bar */}

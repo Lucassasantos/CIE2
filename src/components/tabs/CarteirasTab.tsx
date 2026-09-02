@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { WalletCard, Transaction } from '../../types';
 import { formatCurrency } from '../../utils/imageParser';
+import { EditableText } from '../EditableText';
 
 interface CarteirasTabProps {
   cards: WalletCard[];
@@ -67,8 +68,12 @@ export const CarteirasTab: React.FC<CarteirasTabProps> = ({
       {/* Cards Header & Add Card */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-sm font-bold text-slate-900 tracking-tight">Meus Cartões</h2>
-          <p className="text-xs text-slate-500">Físico e virtuais com proteção ativa</p>
+          <h2 className="text-sm font-bold text-slate-900 tracking-tight">
+            <EditableText id="carteiras_tab_title" defaultText="Meus Cartões" />
+          </h2>
+          <p className="text-xs text-slate-500">
+            <EditableText id="carteiras_tab_subtitle" defaultText="Físico e virtuais com proteção ativa" />
+          </p>
         </div>
         <button
           type="button"

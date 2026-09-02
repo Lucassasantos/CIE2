@@ -10,11 +10,10 @@ import {
   RotateCcw, 
   GraduationCap, 
   ShieldCheck, 
-  Sparkles,
-  Check,
-  Smartphone
+  Sparkles
 } from 'lucide-react';
 import { useEditMode } from '../context/EditModeContext';
+import { EditableText } from './EditableText';
 
 interface HeaderProps {
   onOpenImageManager?: () => void;
@@ -29,7 +28,7 @@ export const Header: React.FC<HeaderProps> = ({
   unreadNotificationsCount = 0
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { isEditMode, toggleEditMode, setEditMode } = useEditMode();
+  const { isEditMode, toggleEditMode } = useEditMode();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const handleToggleMenu = () => {
@@ -39,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
   const handleToggleEditWithFeedback = () => {
     const nextState = !isEditMode;
     toggleEditMode();
-    setToastMessage(nextState ? 'Modo de Edição LIBERADO: Fotos e textos editáveis!' : 'Modo de Edição BLOQUEADO: Visualização limpa!');
+    setToastMessage(nextState ? 'Modo de Edição LIBERADO: Clique em qualquer texto ou foto para editar!' : 'Modo de Edição BLOQUEADO: Visualização limpa!');
     setTimeout(() => {
       setToastMessage(null);
     }, 3000);
@@ -65,35 +64,36 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                Olá, Lucas
+              <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center">
+                <EditableText
+                  id="header_user_greeting"
+                  defaultText="Olá, Lucas"
+                  className="text-white font-bold"
+                  title="Clique para editar a saudação"
+                />
               </h1>
-              {/* Quick status pill */}
-              <button
-                type="button"
-                onClick={handleToggleEditWithFeedback}
-                className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border transition-all ${
-                  isEditMode 
-                    ? 'bg-amber-400/20 text-amber-200 border-amber-300/40 hover:bg-amber-400/30' 
-                    : 'bg-emerald-500/20 text-emerald-200 border-emerald-400/40 hover:bg-emerald-500/30'
-                }`}
-                title={isEditMode ? 'Edição Liberada (Clique para Bloquear)' : 'Edição Bloqueada (Clique para Liberar)'}
-              >
-                {isEditMode ? (
-                  <>
-                    <Edit3 className="w-3 h-3 text-amber-300" />
-                    <span>Edição Ativa</span>
-                  </>
-                ) : (
-                  <>
-                    <Lock className="w-3 h-3 text-emerald-300" />
-                    <span>Bloqueado</span>
-                  </>
-                )}
-              </button>
+
+              {/* Quick status pill - ONLY SHOWN WHEN EDIT MODE IS ACTIVE */}
+              {isEditMode && (
+                <button
+                  type="button"
+                  onClick={handleToggleEditWithFeedback}
+                  className="text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border transition-all bg-amber-400/25 text-amber-200 border-amber-300/50 hover:bg-amber-400/35"
+                  title="Edição Liberada (Clique para Bloquear)"
+                >
+                  <Edit3 className="w-3 h-3 text-amber-300" />
+                  <span>Edição Ativa</span>
+                </button>
+              )}
             </div>
+            
             <p className="text-xs sm:text-sm font-medium text-teal-100/90">
-              Sua carteira estudantil
+              <EditableText
+                id="header_subtitle"
+                defaultText="Sua carteira estudantil"
+                className="text-teal-100/90 font-medium"
+                title="Clique para editar o subtítulo"
+              />
             </p>
           </div>
 
