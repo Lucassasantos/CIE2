@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { parseImageInput } from '../../utils/imageParser';
 import { StudentPhotoSlot } from '../StudentPhotoSlot';
-import { VerticalTextSlot } from '../VerticalTextSlot';
+import { CieCardTextFields } from '../CieCardTextFields';
 import { useEditMode } from '../../context/EditModeContext';
 import { EditableText } from '../EditableText';
 
@@ -203,8 +203,8 @@ export const InicioTab: React.FC<InicioTabProps> = () => {
                 {/* Slot para Inserir Foto com Canto Arredondado sobre o Retângulo Branco da Carteirinha */}
                 <StudentPhotoSlot cardWidth={355} cardHeight={560} />
 
-                {/* Texto Vertical ao lado direito da foto (de baixo para cima) */}
-                <VerticalTextSlot cardWidth={355} cardHeight={560} />
+                {/* Campos de texto fixos da Carteirinha (Nome, CPF/CIN, Nasc, Curso, Instituição) */}
+                <CieCardTextFields cardWidth={355} cardHeight={560} />
 
                 {/* Floating controls - ONLY VISIBLE IN EDIT MODE */}
                 {isEditMode && (
