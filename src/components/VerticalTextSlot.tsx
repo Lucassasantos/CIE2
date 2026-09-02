@@ -630,11 +630,17 @@ export const VerticalTextSlot: React.FC<VerticalTextSlotProps> = ({
                   <div className="w-1 h-1 bg-white rounded-full" />
                 </div>
 
-                {/* Floating On-Canvas Quick Typography Toolbar */}
+                {/* Floating On-Canvas Quick Typography Toolbar - ROTATED VERTICALLY IN APP / HORIZONTALLY TO CARTEIRINHA */}
                 <div 
                   onClick={(e) => e.stopPropagation()} 
                   onPointerDown={(e) => e.stopPropagation()}
-                  className="absolute -top-11 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-slate-900/95 backdrop-blur-md px-2 py-1 rounded-2xl border border-white/20 shadow-2xl text-white z-50 animate-fade-in whitespace-nowrap"
+                  style={{
+                    transform: 'translate(-50%, -50%) rotate(90deg)',
+                    transformOrigin: 'center center',
+                    top: '50%',
+                    left: item.x > 175 ? '-26px' : 'calc(100% + 26px)',
+                  }}
+                  className="absolute flex items-center gap-1 bg-slate-900/95 backdrop-blur-md px-2 py-1 rounded-2xl border border-white/20 shadow-2xl text-white z-50 animate-fade-in whitespace-nowrap select-none"
                 >
                   {/* Quick Font Family Switcher */}
                   <select

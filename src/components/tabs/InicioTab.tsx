@@ -575,9 +575,6 @@ export const InicioTab: React.FC<InicioTabProps> = () => {
           id="text_touch_hint_label"
           defaultText="Toque na carteirinha para exibir o lado oposto"
         />
-        <span className="ml-1 text-[11px] text-slate-400">
-          ({isFlipped ? 'vendo Verso' : 'vendo Frente'})
-        </span>
       </p>
     </div>
   );

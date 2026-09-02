@@ -40,14 +40,15 @@ export const EditableText: React.FC<EditableTextProps> = ({
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   const contentRef = useRef<HTMLElement>(null);
 
-  // Sync if defaultText changes and no custom text exists
+  // Sync text when storageKey or defaultText changes
   useEffect(() => {
     try {
       const saved = localStorage.getItem(storageKey);
-      if (saved === null) {
-        setText(defaultText);
-      }
-    } catch {}
+      setText(saved !== null ? saved : defaultText);
+    } catch {
+      setText(defaultText);
+    }
+    setIsEditing(false);
   }, [defaultText, storageKey]);
 
   // Focus input when editing starts

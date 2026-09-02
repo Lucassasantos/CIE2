@@ -51,6 +51,7 @@ export const StudentPhotoSlot: React.FC<StudentPhotoSlotProps> = ({
   cardHeight = 560,
 }) => {
   const { isEditMode } = useEditMode();
+  const [isSelected, setIsSelected] = useState(false);
 
   // Stored 3x4 Photo
   const [photoUrl, setPhotoUrl] = useState<string>(() => {
@@ -73,6 +74,22 @@ export const StudentPhotoSlot: React.FC<StudentPhotoSlotProps> = ({
   const [isDraggingOver, setIsDraggingOver] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Deselect if edit mode is disabled
+  useEffect(() => {
+    if (!isEditMode) {
+      setIsSelected(false);
+    }
+  }, [isEditMode]);
+
+  // Click outside to deselect
+  useEffect(() => {
+    const handleDocClick = () => {
+      setIsSelected(false);
+    };
+    window.addEventListener('click', handleDocClick);
+    return () => window.removeEventListener('click', handleDocClick);
+  }, []);
 
   // Persistence
   useEffect(() => {
@@ -170,6 +187,8 @@ export const StudentPhotoSlot: React.FC<StudentPhotoSlotProps> = ({
           e.stopPropagation();
           if (!photoUrl) {
             fileInputRef.current?.click();
+          } else {
+            setIsSelected(prev => !prev);
           }
         }}
         onDrop={(e) => {
@@ -197,98 +216,44 @@ export const StudentPhotoSlot: React.FC<StudentPhotoSlotProps> = ({
           top: `${config.y}px`,
           width: `${config.width}px`,
           height: `${config.height}px`,
-          borderRadius: `${config.borderRadius}px`,
           transform: config.rotation ? `rotate(${config.rotation}deg)` : undefined,
           transformOrigin: 'center center',
           pointerEvents: isEditMode ? 'auto' : 'none',
         }}
-        className={`z-20 group/slot transition-all select-none overflow-hidden ${
+        className={`z-20 group/slot transition-all select-none overflow-visible ${
           isEditMode ? 'cursor-pointer' : 'cursor-default'
-        } ${
-          isDraggingOver 
-            ? 'ring-4 ring-teal-400 bg-teal-500/30' 
-            : ''
-        } ${
-          !photoUrl 
-            ? isEditMode 
-              ? 'bg-white/80 hover:bg-white/95 border-2 border-dashed border-teal-500/80 shadow-md backdrop-blur-xs flex flex-col items-center justify-center p-2 text-center'
-              : 'hidden'
-            : config.showBorder 
-              ? 'border-2 border-white/60 shadow-lg' 
-              : 'shadow-md'
         }`}
       >
         {photoUrl ? (
-          /* Rendered Image in Rounded Rectangle */
-          <div className="relative w-full h-full">
+          /* Rendered Image Box in Rounded Rectangle */
+          <div 
+            style={{ borderRadius: `${config.borderRadius}px` }}
+            className={`relative w-full h-full overflow-hidden transition-all duration-200 ${
+              isDraggingOver 
+                ? 'ring-4 ring-teal-400 bg-teal-500/30' 
+                : isSelected && isEditMode
+                  ? 'ring-2 ring-teal-400 ring-offset-2 ring-offset-slate-900/10 shadow-xl'
+                  : config.showBorder 
+                    ? 'border-2 border-white/60 shadow-lg' 
+                    : 'shadow-md'
+            }`}
+          >
             <img
               src={photoUrl}
               alt="Foto Estudante"
               referrerPolicy="no-referrer"
-              style={{ borderRadius: `${config.borderRadius}px` }}
               className={`w-full h-full transition-all duration-200 ${
                 config.objectFit === 'cover' ? 'object-cover' : 'object-contain bg-slate-900/40'
               }`}
             />
-
-            {/* Quick Action Overlay on Hover/Tap - ONLY IN EDIT MODE */}
-            {isEditMode && (
-              <div 
-                onClick={(e) => e.stopPropagation()} 
-                className="absolute inset-0 bg-black/60 backdrop-blur-xs opacity-0 group-hover/slot:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5 p-1 text-white"
-              >
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white transition-colors"
-                    title="Trocar Foto"
-                  >
-                    <Upload className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={rotateRight}
-                    className="p-1.5 rounded-lg bg-teal-500 hover:bg-teal-600 text-white transition-colors"
-                    title="Girar 90° para a Direita"
-                  >
-                    <RotateCw className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowUrlInput(true)}
-                    className="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white transition-colors"
-                    title="Inserir por Link"
-                  >
-                    <LinkIcon className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsConfigModalOpen(true)}
-                    className="p-1.5 rounded-lg bg-teal-500 hover:bg-teal-600 text-white transition-colors"
-                    title="Ajustar Medidas / Posição"
-                  >
-                    <Sliders className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPhotoUrl('')}
-                    className="p-1.5 rounded-lg bg-rose-500/80 hover:bg-rose-600 text-white transition-colors"
-                    title="Remover Foto"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                <span className="text-[9px] font-semibold text-teal-200 tracking-tight">
-                  {config.width}×{config.height}px {config.rotation ? `• ${config.rotation}°` : ''}
-                </span>
-              </div>
-            )}
           </div>
         ) : (
           /* Empty Placeholder inside the White/Dashed Rectangle (only shown in edit mode) */
           isEditMode && (
-            <div className="flex flex-col items-center justify-center text-teal-800 space-y-1">
+            <div 
+              style={{ borderRadius: `${config.borderRadius}px` }}
+              className="w-full h-full bg-white/80 hover:bg-white/95 border-2 border-dashed border-teal-500/80 shadow-md backdrop-blur-xs flex flex-col items-center justify-center p-2 text-center text-teal-800 space-y-1 overflow-hidden"
+            >
               <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center text-[#178596] shadow-xs">
                 <Camera className="w-4 h-4" />
               </div>
@@ -300,6 +265,73 @@ export const StudentPhotoSlot: React.FC<StudentPhotoSlotProps> = ({
               </div>
             </div>
           )
+        )}
+
+        {/* Floating Options Toolbar - DISPLAYED OUTSIDE THE PHOTO UPON CLICK IN EDIT MODE */}
+        {isEditMode && isSelected && photoUrl && (
+          <div 
+            onClick={(e) => e.stopPropagation()} 
+            onPointerDown={(e) => e.stopPropagation()}
+            style={{
+              transform: 'translate(-50%, -50%) rotate(90deg)',
+              transformOrigin: 'center center',
+              top: '50%',
+              left: config.x > 100 ? '-34px' : 'calc(100% + 34px)',
+            }}
+            className="absolute flex items-center gap-1.5 bg-slate-900/95 backdrop-blur-md px-2.5 py-1.5 rounded-2xl border border-white/20 shadow-2xl text-white z-50 animate-fade-in whitespace-nowrap select-none"
+          >
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="p-1.5 rounded-xl bg-white/10 hover:bg-white/25 text-white transition-colors"
+              title="Trocar Foto"
+            >
+              <Upload className="w-4 h-4" />
+            </button>
+
+            <button
+              type="button"
+              onClick={rotateRight}
+              className="p-1.5 rounded-xl bg-[#178596] hover:bg-teal-600 text-white transition-colors"
+              title="Girar 90° para a Direita"
+            >
+              <RotateCw className="w-4 h-4" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowUrlInput(true)}
+              className="p-1.5 rounded-xl bg-white/10 hover:bg-white/25 text-white transition-colors"
+              title="Inserir por Link"
+            >
+              <LinkIcon className="w-4 h-4" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsConfigModalOpen(true)}
+              className="p-1.5 rounded-xl bg-[#178596] hover:bg-teal-600 text-white transition-colors"
+              title="Ajustar Medidas / Posição"
+            >
+              <Sliders className="w-4 h-4" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setPhotoUrl('');
+                setIsSelected(false);
+              }}
+              className="p-1.5 rounded-xl bg-rose-500/80 hover:bg-rose-600 text-white transition-colors"
+              title="Remover Foto"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+
+            <span className="text-[10px] font-semibold text-teal-200 tracking-tight pl-1">
+              {config.width}×{config.height}px {config.rotation ? `• ${config.rotation}°` : ''}
+            </span>
+          </div>
         )}
       </div>
 
