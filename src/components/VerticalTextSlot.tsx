@@ -19,6 +19,8 @@ import {
   CheckCheck,
   X
 } from 'lucide-react';
+import { useEditMode } from '../context/EditModeContext';
+
 
 export type FontFamilyType = 
   | 'mono' 
@@ -200,6 +202,8 @@ export const VerticalTextSlot: React.FC<VerticalTextSlotProps> = ({
   cardWidth = 355,
   cardHeight = 560,
 }) => {
+  const { isEditMode } = useEditMode();
+
   const [lines, setLines] = useState<VerticalTextItem[]>(() => {
     try {
       const saved = localStorage.getItem('app_carteira_vertical_text_lines_v3');
@@ -230,6 +234,15 @@ export const VerticalTextSlot: React.FC<VerticalTextSlotProps> = ({
   const [activeTab, setActiveTab] = useState<'font' | 'position' | 'color' | 'presets'>('font');
   const [inputText, setInputText] = useState('');
   const [showApplyAllToast, setShowApplyAllToast] = useState(false);
+
+  // Clear selection if edit mode is locked
+  useEffect(() => {
+    if (!isEditMode) {
+      setSelectedId(null);
+      setModalItem(null);
+    }
+  }, [isEditMode]);
+
 
   // Dragging and Resizing State
   const [isDragging, setIsDragging] = useState(false);
@@ -508,7 +521,7 @@ export const VerticalTextSlot: React.FC<VerticalTextSlotProps> = ({
       )}
 
       {/* Global Button if no lines or want to add line / restore */}
-      {lines.length === 0 && (
+      {isEditMode && lines.length === 0 && (
         <div 
           onClick={(e) => e.stopPropagation()} 
           className="absolute top-11 right-3 z-30 flex items-center gap-1.5"
@@ -537,7 +550,7 @@ export const VerticalTextSlot: React.FC<VerticalTextSlotProps> = ({
       {/* Render all individual vertical text lines */}
       {lines.map((item, index) => {
         if (!item.enabled) return null;
-        const isSelected = selectedId === item.id;
+        const isSelected = isEditMode && selectedId === item.id;
         const isBottomToTop = item.direction === 'bottom-to-top';
 
         return (
@@ -545,27 +558,35 @@ export const VerticalTextSlot: React.FC<VerticalTextSlotProps> = ({
             key={item.id}
             id={`vertical-text-line-${item.id}`}
             onClick={(e) => {
+              if (!isEditMode) return;
               e.stopPropagation();
               setSelectedId(item.id);
             }}
-            onPointerDown={(e) => handlePointerDownMove(e, item)}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={handlePointerUp}
+            onPointerDown={(e) => {
+              if (!isEditMode) return;
+              handlePointerDownMove(e, item);
+            }}
+            onPointerMove={isEditMode ? handlePointerMove : undefined}
+            onPointerUp={isEditMode ? handlePointerUp : undefined}
+            onPointerCancel={isEditMode ? handlePointerUp : undefined}
             style={{
               left: `${item.x}px`,
               top: `${item.y}px`,
               height: `${item.height}px`,
               backgroundColor: item.showBackground ? item.backgroundColor : 'transparent',
-              touchAction: 'none',
+              touchAction: isEditMode ? 'none' : 'auto',
+              pointerEvents: isEditMode ? 'auto' : 'none',
             }}
-            className={`absolute z-30 group/vline cursor-move flex items-center justify-center rounded px-0.5 select-none transition-shadow ${
-              isSelected 
-                ? 'ring-2 ring-teal-500 bg-teal-500/10 shadow-lg' 
-                : 'hover:ring-1 hover:ring-teal-400/80 hover:bg-white/40'
+            className={`absolute z-30 select-none transition-shadow flex items-center justify-center rounded px-0.5 ${
+              isEditMode 
+                ? isSelected 
+                  ? 'group/vline cursor-move ring-2 ring-teal-500 bg-teal-500/10 shadow-lg' 
+                  : 'group/vline cursor-move hover:ring-1 hover:ring-teal-400/80 hover:bg-white/40'
+                : 'cursor-default pointer-events-none'
             }`}
-            title={`Linha ${index + 1}: Clique para mover, redimensionar ou trocar fonte`}
+            title={isEditMode ? `Linha ${index + 1}: Clique para mover, redimensionar ou trocar fonte` : undefined}
           >
+
             {/* Rotated Vertical Text with Full Typography Support */}
             <div
               style={{

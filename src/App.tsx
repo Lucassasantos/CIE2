@@ -47,13 +47,13 @@ import { StudentCieData, BenefitOffer } from './types';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('inicio');
-  const [isSimulatorFrame, setIsSimulatorFrame] = useState<boolean>(true);
 
   // CIE Student Card State (persisted locally)
   const [cieData, setCieData] = useState<StudentCieData>(() => {
     const saved = localStorage.getItem('app_cie_data');
     return saved ? JSON.parse(saved) : DEFAULT_CIE_DATA;
   });
+
 
   const [benefitOffers] = useState<BenefitOffer[]>(DEFAULT_BENEFIT_OFFERS);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
@@ -313,103 +313,70 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-200/90 flex flex-col items-center justify-start p-0 sm:py-6 sm:px-4">
-      {/* Top Banner Guide for User's Question */}
-      <aside aria-label="Informações e Controles Rápidos" className="w-full max-w-md mb-3 px-3 sm:px-0 flex items-center justify-between gap-2 text-xs">
-        <div className="flex items-center gap-1.5 text-slate-700 bg-white/90 px-3 py-1.5 rounded-full shadow-xs backdrop-blur-xs">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-          <span className="font-medium text-[11px] truncate">
-            Links diretos e tags HTML suportados
-          </span>
-        </div>
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-between max-w-lg mx-auto shadow-xl">
+      {/* Header - Exact deep teal style */}
+      <Header
+        activeTab={activeTab}
+        unreadNotificationsCount={unreadAvisosCount}
+        onOpenImageManager={() => setIsImageManagerOpen(true)}
+        onOpenNotifications={() => setActiveTab('avisos')}
+      />
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setIsImageManagerOpen(true)}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#178596] hover:bg-teal-800 text-white font-bold text-[11px] shadow-xs transition-colors"
-          >
-            <LinkIcon className="w-3 h-3" />
-            Adicionar Imagem
-          </button>
-        </div>
-      </aside>
+      {/* Screen Content Body (Scrollable) */}
+      <main className="flex-1 overflow-y-auto bg-slate-50 relative focus:outline-none">
+        {activeTab === 'inicio' && (
+          <InicioTab
+            cieData={cieData}
+            banners={banners}
+            benefitOffers={benefitOffers}
+            transactions={transactions}
+            onOpenImageManager={() => setIsImageManagerOpen(true)}
+            onInspectImage={handleInspectImage}
+            onNavigateToTab={(tab) => setActiveTab(tab)}
+            onOpenQrModal={() => setIsQrModalOpen(true)}
+          />
+        )}
 
-      {/* Main Container / Mobile Simulator Frame matching the provided screenshot */}
-      <div
-        id="app-mobile-viewport"
-        className={`w-full bg-white flex flex-col overflow-hidden transition-all duration-300 ${
-          isSimulatorFrame
-            ? 'max-w-[420px] rounded-none sm:rounded-[36px] shadow-2xl border-0 sm:border-[8px] sm:border-slate-800/90 h-[100dvh] sm:h-[860px]'
-            : 'max-w-4xl rounded-2xl shadow-xl min-h-[90vh]'
-        }`}
-      >
-        {/* Header - Exact deep teal style as user uploaded screenshot */}
-        <Header
-          activeTab={activeTab}
-          unreadNotificationsCount={unreadAvisosCount}
-          onOpenImageManager={() => setIsImageManagerOpen(true)}
-          onOpenNotifications={() => setActiveTab('avisos')}
-          isSimulatorFrame={isSimulatorFrame}
-          onToggleSimulatorFrame={() => setIsSimulatorFrame(!isSimulatorFrame)}
-        />
+        {activeTab === 'indique' && (
+          <IndiqueTab
+            friends={friends}
+            onSimulateReferral={handleSimulateReferral}
+            onOpenImageManager={() => setIsImageManagerOpen(true)}
+            onInspectImage={handleInspectImage}
+            campaignImageUrl={banners[0]?.imageUrl}
+          />
+        )}
 
-        {/* Screen Content Body (Scrollable) */}
-        <main className="flex-1 overflow-y-auto bg-slate-50 relative focus:outline-none">
-          {activeTab === 'inicio' && (
-            <InicioTab
-              cieData={cieData}
-              banners={banners}
-              benefitOffers={benefitOffers}
-              transactions={transactions}
-              onOpenImageManager={() => setIsImageManagerOpen(true)}
-              onInspectImage={handleInspectImage}
-              onNavigateToTab={(tab) => setActiveTab(tab)}
-              onOpenQrModal={() => setIsQrModalOpen(true)}
-            />
-          )}
+        {activeTab === 'carteiras' && (
+          <CarteirasTab
+            cards={cards}
+            transactions={transactions}
+            onOpenImageManager={() => setIsImageManagerOpen(true)}
+            onInspectImage={handleInspectImage}
+            onAddNewVirtualCard={handleAddNewVirtualCard}
+          />
+        )}
 
-          {activeTab === 'indique' && (
-            <IndiqueTab
-              friends={friends}
-              onSimulateReferral={handleSimulateReferral}
-              onOpenImageManager={() => setIsImageManagerOpen(true)}
-              onInspectImage={handleInspectImage}
-              campaignImageUrl={banners[0]?.imageUrl}
-            />
-          )}
+        {activeTab === 'avisos' && (
+          <AvisosTab
+            notifications={notifications}
+            onMarkAllAsRead={handleMarkAllAsRead}
+            onClearAll={handleClearAllNotifications}
+            onOpenImageManager={() => setIsImageManagerOpen(true)}
+            onInspectImage={handleInspectImage}
+            onNotificationClick={handleNotificationClick}
+          />
+        )}
+      </main>
 
-          {activeTab === 'carteiras' && (
-            <CarteirasTab
-              cards={cards}
-              transactions={transactions}
-              onOpenImageManager={() => setIsImageManagerOpen(true)}
-              onInspectImage={handleInspectImage}
-              onAddNewVirtualCard={handleAddNewVirtualCard}
-            />
-          )}
+      {/* Bottom Navigation Bar */}
+      <BottomNav
+        activeTab={activeTab}
+        onChangeTab={(tab) => setActiveTab(tab)}
+        unreadAvisosCount={unreadAvisosCount}
+      />
 
-          {activeTab === 'avisos' && (
-            <AvisosTab
-              notifications={notifications}
-              onMarkAllAsRead={handleMarkAllAsRead}
-              onClearAll={handleClearAllNotifications}
-              onOpenImageManager={() => setIsImageManagerOpen(true)}
-              onInspectImage={handleInspectImage}
-              onNotificationClick={handleNotificationClick}
-            />
-          )}
-        </main>
-
-        {/* Bottom Navigation Bar - Faithful to screenshot: Início | Indique | Carteiras | Avisos */}
-        <BottomNav
-          activeTab={activeTab}
-          onChangeTab={(tab) => setActiveTab(tab)}
-          unreadAvisosCount={unreadAvisosCount}
-        />
-      </div>
-
-      {/* Image Manager Modal (for adding direct image URLs and HTML <img> tags) */}
+      {/* Image Manager Modal */}
       <ImageLinkManagerModal
         isOpen={isImageManagerOpen}
         onClose={() => setIsImageManagerOpen(false)}

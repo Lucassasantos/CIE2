@@ -18,6 +18,7 @@ import {
   Check
 } from 'lucide-react';
 import { StudentCieData } from '../types';
+import { useEditMode } from '../context/EditModeContext';
 
 interface CieStudentCardProps {
   cieData: StudentCieData;
@@ -32,8 +33,10 @@ export const CieStudentCard: React.FC<CieStudentCardProps> = ({
   onOpenImageManager,
   onInspectImage,
 }) => {
+  const { isEditMode } = useEditMode();
   const [isFlipped, setIsFlipped] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
+
 
   const handleCopyDnv = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -112,18 +115,20 @@ export const CieStudentCard: React.FC<CieStudentCardProps> = ({
                     className="w-full h-full object-cover"
                   />
                   {/* Photo Edit Direct Link Overlay */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onOpenImageManager();
-                    }}
-                    className="absolute inset-0 bg-black/60 opacity-0 group-hover/photo:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[9px] font-bold p-1 text-center"
-                    title="Trocar Foto da Carteirinha via link direto"
-                  >
-                    <Camera className="w-4 h-4 mb-0.5 text-teal-300" />
-                    <span>Trocar Foto</span>
-                  </button>
+                  {isEditMode && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenImageManager();
+                      }}
+                      className="absolute inset-0 bg-black/60 opacity-0 group-hover/photo:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[9px] font-bold p-1 text-center"
+                      title="Trocar Foto da Carteirinha via link direto"
+                    >
+                      <Camera className="w-4 h-4 mb-0.5 text-teal-300" />
+                      <span>Trocar Foto</span>
+                    </button>
+                  )}
                 </div>
               </div>
 

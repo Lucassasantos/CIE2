@@ -15,6 +15,7 @@ import {
   CreditCard
 } from 'lucide-react';
 import { parseImageInput } from '../utils/imageParser';
+import { useEditMode } from '../context/EditModeContext';
 
 export interface PhotoSlotConfig {
   x: number; // in px from left
@@ -49,6 +50,8 @@ export const StudentPhotoSlot: React.FC<StudentPhotoSlotProps> = ({
   cardWidth = 355,
   cardHeight = 560,
 }) => {
+  const { isEditMode } = useEditMode();
+
   // Stored 3x4 Photo
   const [photoUrl, setPhotoUrl] = useState<string>(() => {
     return localStorage.getItem('app_carteira_foto_3x4') || '';
@@ -120,6 +123,7 @@ export const StudentPhotoSlot: React.FC<StudentPhotoSlotProps> = ({
   };
 
   if (!config.visible) {
+    if (!isEditMode) return null;
     return (
       <div 
         onClick={(e) => e.stopPropagation()} 
@@ -137,30 +141,39 @@ export const StudentPhotoSlot: React.FC<StudentPhotoSlotProps> = ({
     );
   }
 
+  // If edit mode is locked and there is no photo, don't show dashed placeholder
+  if (!isEditMode && !photoUrl) {
+    return null;
+  }
+
   return (
     <>
       {/* Hidden File Input for the 3x4 Photo Slot */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) handleFileUpload(file);
-        }}
-        className="hidden"
-      />
+      {isEditMode && (
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) handleFileUpload(file);
+          }}
+          className="hidden"
+        />
+      )}
 
       {/* The Rounded Photo Slot Overlay on the Card */}
       <div
         id="student-photo-slot-container"
         onClick={(e) => {
+          if (!isEditMode) return;
           e.stopPropagation();
           if (!photoUrl) {
             fileInputRef.current?.click();
           }
         }}
         onDrop={(e) => {
+          if (!isEditMode) return;
           e.preventDefault();
           e.stopPropagation();
           setIsDraggingOver(false);
@@ -168,11 +181,13 @@ export const StudentPhotoSlot: React.FC<StudentPhotoSlotProps> = ({
           if (file) handleFileUpload(file);
         }}
         onDragOver={(e) => {
+          if (!isEditMode) return;
           e.preventDefault();
           e.stopPropagation();
           setIsDraggingOver(true);
         }}
         onDragLeave={(e) => {
+          if (!isEditMode) return;
           e.stopPropagation();
           setIsDraggingOver(false);
         }}
@@ -185,14 +200,19 @@ export const StudentPhotoSlot: React.FC<StudentPhotoSlotProps> = ({
           borderRadius: `${config.borderRadius}px`,
           transform: config.rotation ? `rotate(${config.rotation}deg)` : undefined,
           transformOrigin: 'center center',
+          pointerEvents: isEditMode ? 'auto' : 'none',
         }}
-        className={`z-20 group/slot transition-all select-none overflow-hidden cursor-pointer ${
+        className={`z-20 group/slot transition-all select-none overflow-hidden ${
+          isEditMode ? 'cursor-pointer' : 'cursor-default'
+        } ${
           isDraggingOver 
             ? 'ring-4 ring-teal-400 bg-teal-500/30' 
             : ''
         } ${
           !photoUrl 
-            ? 'bg-white/80 hover:bg-white/95 border-2 border-dashed border-teal-500/80 shadow-md backdrop-blur-xs flex flex-col items-center justify-center p-2 text-center' 
+            ? isEditMode 
+              ? 'bg-white/80 hover:bg-white/95 border-2 border-dashed border-teal-500/80 shadow-md backdrop-blur-xs flex flex-col items-center justify-center p-2 text-center'
+              : 'hidden'
             : config.showBorder 
               ? 'border-2 border-white/60 shadow-lg' 
               : 'shadow-md'
@@ -211,73 +231,78 @@ export const StudentPhotoSlot: React.FC<StudentPhotoSlotProps> = ({
               }`}
             />
 
-            {/* Quick Action Overlay on Hover/Tap */}
-            <div 
-              onClick={(e) => e.stopPropagation()} 
-              className="absolute inset-0 bg-black/60 backdrop-blur-xs opacity-0 group-hover/slot:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5 p-1 text-white"
-            >
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white transition-colors"
-                  title="Trocar Foto"
-                >
-                  <Upload className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={rotateRight}
-                  className="p-1.5 rounded-lg bg-teal-500 hover:bg-teal-600 text-white transition-colors"
-                  title="Girar 90° para a Direita"
-                >
-                  <RotateCw className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowUrlInput(true)}
-                  className="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white transition-colors"
-                  title="Inserir por Link"
-                >
-                  <LinkIcon className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsConfigModalOpen(true)}
-                  className="p-1.5 rounded-lg bg-teal-500 hover:bg-teal-600 text-white transition-colors"
-                  title="Ajustar Medidas / Posição"
-                >
-                  <Sliders className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPhotoUrl('')}
-                  className="p-1.5 rounded-lg bg-rose-500/80 hover:bg-rose-600 text-white transition-colors"
-                  title="Remover Foto"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+            {/* Quick Action Overlay on Hover/Tap - ONLY IN EDIT MODE */}
+            {isEditMode && (
+              <div 
+                onClick={(e) => e.stopPropagation()} 
+                className="absolute inset-0 bg-black/60 backdrop-blur-xs opacity-0 group-hover/slot:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5 p-1 text-white"
+              >
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white transition-colors"
+                    title="Trocar Foto"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={rotateRight}
+                    className="p-1.5 rounded-lg bg-teal-500 hover:bg-teal-600 text-white transition-colors"
+                    title="Girar 90° para a Direita"
+                  >
+                    <RotateCw className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowUrlInput(true)}
+                    className="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white transition-colors"
+                    title="Inserir por Link"
+                  >
+                    <LinkIcon className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsConfigModalOpen(true)}
+                    className="p-1.5 rounded-lg bg-teal-500 hover:bg-teal-600 text-white transition-colors"
+                    title="Ajustar Medidas / Posição"
+                  >
+                    <Sliders className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPhotoUrl('')}
+                    className="p-1.5 rounded-lg bg-rose-500/80 hover:bg-rose-600 text-white transition-colors"
+                    title="Remover Foto"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <span className="text-[9px] font-semibold text-teal-200 tracking-tight">
+                  {config.width}×{config.height}px {config.rotation ? `• ${config.rotation}°` : ''}
+                </span>
               </div>
-              <span className="text-[9px] font-semibold text-teal-200 tracking-tight">
-                {config.width}×{config.height}px {config.rotation ? `• ${config.rotation}°` : ''}
-              </span>
-            </div>
+            )}
           </div>
         ) : (
-          /* Empty Placeholder inside the White/Dashed Rectangle */
-          <div className="flex flex-col items-center justify-center text-teal-800 space-y-1">
-            <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center text-[#178596] shadow-xs">
-              <Camera className="w-4 h-4" />
+          /* Empty Placeholder inside the White/Dashed Rectangle (only shown in edit mode) */
+          isEditMode && (
+            <div className="flex flex-col items-center justify-center text-teal-800 space-y-1">
+              <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center text-[#178596] shadow-xs">
+                <Camera className="w-4 h-4" />
+              </div>
+              <div className="text-[10px] font-bold leading-tight">
+                Foto {config.rotation ? `(${config.rotation}°)` : 'Horizontal'}
+              </div>
+              <div className="text-[8px] text-teal-700/80 font-medium">
+                Canto arredondado ({config.borderRadius}px)
+              </div>
             </div>
-            <div className="text-[10px] font-bold leading-tight">
-              Foto {config.rotation ? `(${config.rotation}°)` : 'Horizontal'}
-            </div>
-            <div className="text-[8px] text-teal-700/80 font-medium">
-              Canto arredondado ({config.borderRadius}px)
-            </div>
-          </div>
+          )
         )}
       </div>
+
 
 
 

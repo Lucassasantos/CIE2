@@ -6,17 +6,22 @@ import {
   Trash2, 
   Maximize2, 
   Image as ImageIcon,
-  RotateCw
+  RotateCw,
+  Lock,
+  Unlock,
+  Sparkles
 } from 'lucide-react';
 import { parseImageInput } from '../../utils/imageParser';
 import { StudentPhotoSlot } from '../StudentPhotoSlot';
 import { VerticalTextSlot } from '../VerticalTextSlot';
+import { useEditMode } from '../../context/EditModeContext';
 
 interface InicioTabProps {
   [key: string]: any;
 }
 
 export const InicioTab: React.FC<InicioTabProps> = () => {
+  const { isEditMode, toggleEditMode } = useEditMode();
   const [isFlipped, setIsFlipped] = useState(false);
 
   // Front Photo
@@ -43,6 +48,13 @@ export const InicioTab: React.FC<InicioTabProps> = () => {
   const fileInputBackRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    if (!isEditMode) {
+      setShowUrlInputFront(false);
+      setShowUrlInputBack(false);
+    }
+  }, [isEditMode]);
+
+  useEffect(() => {
     if (frontPhoto) {
       localStorage.setItem('app_carteira_frente', frontPhoto);
       localStorage.setItem('app_center_photo', frontPhoto);
@@ -61,6 +73,7 @@ export const InicioTab: React.FC<InicioTabProps> = () => {
   }, [backPhoto]);
 
   const handleFileUpload = (file: File, side: 'front' | 'back') => {
+    if (!isEditMode) return;
     if (!file.type.startsWith('image/')) return;
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -97,27 +110,31 @@ export const InicioTab: React.FC<InicioTabProps> = () => {
       id="tab-inicio-container" 
       className="min-h-full flex flex-col items-center justify-center p-4 sm:p-6 bg-slate-50 select-none gap-4"
     >
-      {/* Hidden File Inputs */}
-      <input
-        ref={fileInputFrontRef}
-        type="file"
-        accept="image/*"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) handleFileUpload(file, 'front');
-        }}
-        className="hidden"
-      />
-      <input
-        ref={fileInputBackRef}
-        type="file"
-        accept="image/*"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) handleFileUpload(file, 'back');
-        }}
-        className="hidden"
-      />
+      {/* Hidden File Inputs (only active in edit mode) */}
+      {isEditMode && (
+        <>
+          <input
+            ref={fileInputFrontRef}
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFileUpload(file, 'front');
+            }}
+            className="hidden"
+          />
+          <input
+            ref={fileInputBackRef}
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFileUpload(file, 'back');
+            }}
+            className="hidden"
+          />
+        </>
+      )}
 
       {/* 3D Perspective Wrapper */}
       <div 
@@ -146,12 +163,14 @@ export const InicioTab: React.FC<InicioTabProps> = () => {
               transformStyle: 'preserve-3d',
             }}
             onDrop={(e) => {
+              if (!isEditMode) return;
               e.preventDefault();
               setIsDraggingFront(false);
               const file = e.dataTransfer.files?.[0];
               if (file) handleFileUpload(file, 'front');
             }}
             onDragOver={(e) => {
+              if (!isEditMode) return;
               e.preventDefault();
               setIsDraggingFront(true);
             }}
@@ -186,50 +205,52 @@ export const InicioTab: React.FC<InicioTabProps> = () => {
                 {/* Texto Vertical ao lado direito da foto (de baixo para cima) */}
                 <VerticalTextSlot cardWidth={355} cardHeight={560} />
 
-                {/* Floating controls */}
-                <div 
-                  onClick={(e) => e.stopPropagation()} 
-                  className="absolute top-3 right-3 flex items-center gap-1.5 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-md p-1.5 rounded-2xl border border-white/20 z-30"
-                >
-                  <button
-                    type="button"
-                    onClick={() => setObjectFitFront(objectFitFront === 'cover' ? 'contain' : 'cover')}
-                    className="p-2 rounded-xl text-white hover:bg-white/20 transition-colors"
-                    title={objectFitFront === 'cover' ? 'Ajustar para caber inteiro (contain)' : 'Preencher quadro (cover)'}
+                {/* Floating controls - ONLY VISIBLE IN EDIT MODE */}
+                {isEditMode && (
+                  <div 
+                    onClick={(e) => e.stopPropagation()} 
+                    className="absolute top-3 right-3 flex items-center gap-1.5 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-md p-1.5 rounded-2xl border border-white/20 z-30"
                   >
-                    <Maximize2 className="w-4 h-4" />
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setObjectFitFront(objectFitFront === 'cover' ? 'contain' : 'cover')}
+                      className="p-2 rounded-xl text-white hover:bg-white/20 transition-colors"
+                      title={objectFitFront === 'cover' ? 'Ajustar para caber inteiro (contain)' : 'Preencher quadro (cover)'}
+                    >
+                      <Maximize2 className="w-4 h-4" />
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => fileInputFrontRef.current?.click()}
-                    className="p-2 rounded-xl text-white hover:bg-white/20 transition-colors"
-                    title="Trocar Foto da Frente"
-                  >
-                    <Upload className="w-4 h-4" />
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => fileInputFrontRef.current?.click()}
+                      className="p-2 rounded-xl text-white hover:bg-white/20 transition-colors"
+                      title="Trocar Foto da Frente"
+                    >
+                      <Upload className="w-4 h-4" />
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setShowUrlInputFront(!showUrlInputFront)}
-                    className="p-2 rounded-xl text-white hover:bg-white/20 transition-colors"
-                    title="Trocar Foto por Link"
-                  >
-                    <LinkIcon className="w-4 h-4" />
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowUrlInputFront(!showUrlInputFront)}
+                      className="p-2 rounded-xl text-white hover:bg-white/20 transition-colors"
+                      title="Trocar Foto por Link"
+                    >
+                      <LinkIcon className="w-4 h-4" />
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setFrontPhoto('')}
-                    className="p-2 rounded-xl text-rose-300 hover:bg-rose-500/30 transition-colors"
-                    title="Remover Foto"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                    <button
+                      type="button"
+                      onClick={() => setFrontPhoto('')}
+                      className="p-2 rounded-xl text-rose-300 hover:bg-rose-500/30 transition-colors"
+                      title="Remover Foto"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
 
                 {/* URL input modal */}
-                {showUrlInputFront && (
+                {isEditMode && showUrlInputFront && (
                   <div 
                     onClick={(e) => e.stopPropagation()} 
                     className="absolute inset-x-3 bottom-3 p-3 bg-slate-900/95 backdrop-blur-md rounded-2xl border border-white/20 text-white z-40"
@@ -281,31 +302,46 @@ export const InicioTab: React.FC<InicioTabProps> = () => {
                       Foto da Frente
                     </h3>
                     <p className="text-xs text-slate-500 leading-relaxed">
-                      Arraste ou escolha a foto para a frente da carteirinha
+                      {isEditMode 
+                        ? 'Arraste ou escolha a foto para a frente da carteirinha' 
+                        : 'Nenhuma imagem carregada na frente da carteirinha'}
                     </p>
                   </div>
 
-                  <div className="flex flex-col gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      type="button"
-                      onClick={() => fileInputFrontRef.current?.click()}
-                      className="w-full py-2.5 px-4 rounded-xl bg-[#178596] hover:bg-[#126b79] text-white text-xs font-bold transition-colors flex items-center justify-center gap-2 shadow-xs"
-                    >
-                      <Upload className="w-4 h-4" />
-                      <span>Escolher Arquivo da Frente</span>
-                    </button>
+                  {isEditMode ? (
+                    <div className="flex flex-col gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        onClick={() => fileInputFrontRef.current?.click()}
+                        className="w-full py-2.5 px-4 rounded-xl bg-[#178596] hover:bg-[#126b79] text-white text-xs font-bold transition-colors flex items-center justify-center gap-2 shadow-xs"
+                      >
+                        <Upload className="w-4 h-4" />
+                        <span>Escolher Arquivo da Frente</span>
+                      </button>
 
-                    <button
-                      type="button"
-                      onClick={() => setShowUrlInputFront(!showUrlInputFront)}
-                      className="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-bold transition-colors flex items-center justify-center gap-2"
-                    >
-                      <LinkIcon className="w-4 h-4 text-[#178596]" />
-                      <span>Inserir Link da Imagem</span>
-                    </button>
-                  </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowUrlInputFront(!showUrlInputFront)}
+                        className="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-bold transition-colors flex items-center justify-center gap-2"
+                      >
+                        <LinkIcon className="w-4 h-4 text-[#178596]" />
+                        <span>Inserir Link da Imagem</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="pt-2" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        onClick={toggleEditMode}
+                        className="w-full py-2 px-3 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        <Unlock className="w-3.5 h-3.5" />
+                        <span>Liberar Edição para Adicionar</span>
+                      </button>
+                    </div>
+                  )}
 
-                  {showUrlInputFront && (
+                  {isEditMode && showUrlInputFront && (
                     <form 
                       onClick={(e) => e.stopPropagation()} 
                       onSubmit={(e) => handleApplyUrl(e, 'front')} 
@@ -345,12 +381,14 @@ export const InicioTab: React.FC<InicioTabProps> = () => {
               transformStyle: 'preserve-3d',
             }}
             onDrop={(e) => {
+              if (!isEditMode) return;
               e.preventDefault();
               setIsDraggingBack(false);
               const file = e.dataTransfer.files?.[0];
               if (file) handleFileUpload(file, 'back');
             }}
             onDragOver={(e) => {
+              if (!isEditMode) return;
               e.preventDefault();
               setIsDraggingBack(true);
             }}
@@ -379,50 +417,52 @@ export const InicioTab: React.FC<InicioTabProps> = () => {
                   }`}
                 />
 
-                {/* Floating controls */}
-                <div 
-                  onClick={(e) => e.stopPropagation()} 
-                  className="absolute top-3 right-3 flex items-center gap-1.5 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-md p-1.5 rounded-2xl border border-white/20 z-30"
-                >
-                  <button
-                    type="button"
-                    onClick={() => setObjectFitBack(objectFitBack === 'cover' ? 'contain' : 'cover')}
-                    className="p-2 rounded-xl text-white hover:bg-white/20 transition-colors"
-                    title={objectFitBack === 'cover' ? 'Ajustar para caber inteiro (contain)' : 'Preencher quadro (cover)'}
+                {/* Floating controls - ONLY VISIBLE IN EDIT MODE */}
+                {isEditMode && (
+                  <div 
+                    onClick={(e) => e.stopPropagation()} 
+                    className="absolute top-3 right-3 flex items-center gap-1.5 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-md p-1.5 rounded-2xl border border-white/20 z-30"
                   >
-                    <Maximize2 className="w-4 h-4" />
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setObjectFitBack(objectFitBack === 'cover' ? 'contain' : 'cover')}
+                      className="p-2 rounded-xl text-white hover:bg-white/20 transition-colors"
+                      title={objectFitBack === 'cover' ? 'Ajustar para caber inteiro (contain)' : 'Preencher quadro (cover)'}
+                    >
+                      <Maximize2 className="w-4 h-4" />
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => fileInputBackRef.current?.click()}
-                    className="p-2 rounded-xl text-white hover:bg-white/20 transition-colors"
-                    title="Trocar Foto do Verso"
-                  >
-                    <Upload className="w-4 h-4" />
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => fileInputBackRef.current?.click()}
+                      className="p-2 rounded-xl text-white hover:bg-white/20 transition-colors"
+                      title="Trocar Foto do Verso"
+                    >
+                      <Upload className="w-4 h-4" />
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setShowUrlInputBack(!showUrlInputBack)}
-                    className="p-2 rounded-xl text-white hover:bg-white/20 transition-colors"
-                    title="Trocar Foto por Link"
-                  >
-                    <LinkIcon className="w-4 h-4" />
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowUrlInputBack(!showUrlInputBack)}
+                      className="p-2 rounded-xl text-white hover:bg-white/20 transition-colors"
+                      title="Trocar Foto por Link"
+                    >
+                      <LinkIcon className="w-4 h-4" />
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setBackPhoto('')}
-                    className="p-2 rounded-xl text-rose-300 hover:bg-rose-500/30 transition-colors"
-                    title="Remover Verso"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                    <button
+                      type="button"
+                      onClick={() => setBackPhoto('')}
+                      className="p-2 rounded-xl text-rose-300 hover:bg-rose-500/30 transition-colors"
+                      title="Remover Verso"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
 
                 {/* URL input modal */}
-                {showUrlInputBack && (
+                {isEditMode && showUrlInputBack && (
                   <div 
                     onClick={(e) => e.stopPropagation()} 
                     className="absolute inset-x-3 bottom-3 p-3 bg-slate-900/95 backdrop-blur-md rounded-2xl border border-white/20 text-white z-40"
@@ -474,31 +514,46 @@ export const InicioTab: React.FC<InicioTabProps> = () => {
                       Foto do Verso
                     </h3>
                     <p className="text-xs text-slate-500 leading-relaxed">
-                      Adicione o verso da sua carteirinha (código de barras, validação, etc)
+                      {isEditMode 
+                        ? 'Adicione o verso da sua carteirinha (código de barras, validação, etc)'
+                        : 'Nenhuma imagem carregada no verso da carteirinha'}
                     </p>
                   </div>
 
-                  <div className="flex flex-col gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      type="button"
-                      onClick={() => fileInputBackRef.current?.click()}
-                      className="w-full py-2.5 px-4 rounded-xl bg-[#178596] hover:bg-[#126b79] text-white text-xs font-bold transition-colors flex items-center justify-center gap-2 shadow-xs"
-                    >
-                      <Upload className="w-4 h-4" />
-                      <span>Escolher Arquivo do Verso</span>
-                    </button>
+                  {isEditMode ? (
+                    <div className="flex flex-col gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        onClick={() => fileInputBackRef.current?.click()}
+                        className="w-full py-2.5 px-4 rounded-xl bg-[#178596] hover:bg-[#126b79] text-white text-xs font-bold transition-colors flex items-center justify-center gap-2 shadow-xs"
+                      >
+                        <Upload className="w-4 h-4" />
+                        <span>Escolher Arquivo do Verso</span>
+                      </button>
 
-                    <button
-                      type="button"
-                      onClick={() => setShowUrlInputBack(!showUrlInputBack)}
-                      className="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-bold transition-colors flex items-center justify-center gap-2"
-                    >
-                      <LinkIcon className="w-4 h-4 text-[#178596]" />
-                      <span>Inserir Link do Verso</span>
-                    </button>
-                  </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowUrlInputBack(!showUrlInputBack)}
+                        className="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-bold transition-colors flex items-center justify-center gap-2"
+                      >
+                        <LinkIcon className="w-4 h-4 text-[#178596]" />
+                        <span>Inserir Link do Verso</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="pt-2" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        onClick={toggleEditMode}
+                        className="w-full py-2 px-3 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        <Unlock className="w-3.5 h-3.5" />
+                        <span>Liberar Edição para Adicionar</span>
+                      </button>
+                    </div>
+                  )}
 
-                  {showUrlInputBack && (
+                  {isEditMode && showUrlInputBack && (
                     <form 
                       onClick={(e) => e.stopPropagation()} 
                       onSubmit={(e) => handleApplyUrl(e, 'back')} 
@@ -542,3 +597,4 @@ export const InicioTab: React.FC<InicioTabProps> = () => {
     </div>
   );
 };
+
