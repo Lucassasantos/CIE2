@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useEditMode } from '../context/EditModeContext';
-import { Check, Edit2, Move, RotateCcw } from 'lucide-react';
+import { Check, Edit2, Move, RotateCcw, Grid } from 'lucide-react';
 
 export interface CieFieldData {
   nome: string;
@@ -45,6 +45,13 @@ const DEFAULT_POSITIONS: CieFieldPositions = {
 const STORAGE_KEY_TEXTS = 'app_carteira_cie_fixed_fields_v3';
 const STORAGE_KEY_POSITIONS = 'app_carteira_cie_field_positions_v3';
 
+// Step size in pixels for snapping movement
+const GRID_STEP = 4;
+
+const snapToGrid = (val: number, step = GRID_STEP): number => {
+  return Math.round(val / step) * step;
+};
+
 interface CieCardTextFieldsProps {
   cardWidth?: number;
   cardHeight?: number;
@@ -64,10 +71,13 @@ interface DraggableFieldProps {
   onSaveText: (val: string) => void;
   onCancelEdit: () => void;
   onUpdatePosition: (newPos: { top: number; left: number }) => void;
+  onDragStart: (key: keyof CieFieldData) => void;
+  onDragEnd: () => void;
 }
 
 const DraggableField: React.FC<DraggableFieldProps> = ({
   id,
+  fieldKey,
   text,
   position,
   fontSize,
@@ -79,6 +89,8 @@ const DraggableField: React.FC<DraggableFieldProps> = ({
   onSaveText,
   onCancelEdit,
   onUpdatePosition,
+  onDragStart,
+  onDragEnd,
 }) => {
   const [tempText, setTempText] = useState(text);
   const [isDragging, setIsDragging] = useState(false);
@@ -127,6 +139,7 @@ const DraggableField: React.FC<DraggableFieldProps> = ({
       hasMoved: false,
     };
     setIsDragging(true);
+    onDragStart(fieldKey);
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -140,10 +153,16 @@ const DraggableField: React.FC<DraggableFieldProps> = ({
       dragRef.current.hasMoved = true;
     }
 
-    const nextTop = Math.round(dragRef.current.startTop + dy);
-    const nextLeft = Math.round(dragRef.current.startLeft + dx);
+    // Step-by-step movement snapped to grid (ponto em ponto)
+    const rawTop = dragRef.current.startTop + dy;
+    const rawLeft = dragRef.current.startLeft + dx;
 
-    onUpdatePosition({ top: nextTop, left: nextLeft });
+    const nextTop = snapToGrid(rawTop, GRID_STEP);
+    const nextLeft = snapToGrid(rawLeft, GRID_STEP);
+
+    if (nextTop !== position.top || nextLeft !== position.left) {
+      onUpdatePosition({ top: nextTop, left: nextLeft });
+    }
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -155,6 +174,7 @@ const DraggableField: React.FC<DraggableFieldProps> = ({
     } catch {}
 
     setIsDragging(false);
+    onDragEnd();
 
     if (!dragRef.current.hasMoved) {
       onStartEdit();
@@ -225,7 +245,7 @@ const DraggableField: React.FC<DraggableFieldProps> = ({
                 : 'cursor-grab hover:bg-teal-500/20 hover:ring-1 hover:ring-teal-400 bg-white/50 border border-dashed border-teal-500/70 shadow-xs'
               : ''
           }`}
-          title={isEditMode ? 'Arraste para mover ou clique para editar' : undefined}
+          title={isEditMode ? 'Arraste para mover (passo a passo) ou clique para editar' : undefined}
         >
           {isEditMode && (
             <Move className="w-2.5 h-2.5 text-[#178596] opacity-60 group-hover/field:opacity-100" />
@@ -271,6 +291,7 @@ export const CieCardTextFields: React.FC<CieCardTextFieldsProps> = () => {
   });
 
   const [activeEditingField, setActiveEditingField] = useState<keyof CieFieldData | null>(null);
+  const [draggingField, setDraggingField] = useState<keyof CieFieldData | null>(null);
 
   // Save texts to localStorage
   useEffect(() => {
@@ -303,11 +324,64 @@ export const CieCardTextFields: React.FC<CieCardTextFieldsProps> = () => {
     setActiveEditingField(null);
   };
 
+  const activeDragPos = draggingField ? positions[draggingField] : null;
+
   return (
     <div 
       id="cie-fixed-fields-overlay"
       className="absolute inset-0 pointer-events-none z-20 select-none font-sans"
     >
+      {/* Visual Alignment Grid (Grade de Alinhamento ao Movimentar) */}
+      {isEditMode && draggingField && (
+        <div 
+          id="alignment-grid-overlay"
+          className="absolute inset-0 pointer-events-none z-10 animate-fade-in"
+        >
+          {/* Subtle Grid Background Pattern */}
+          <svg className="w-full h-full opacity-60" width="100%" height="100%">
+            <defs>
+              {/* Minor 4px dot pattern */}
+              <pattern id="minorGrid" width="8" height="8" patternUnits="userSpaceOnUse">
+                <circle cx="4" cy="4" r="0.8" fill="#178596" opacity="0.35" />
+              </pattern>
+              {/* Major 24px grid lines */}
+              <pattern id="majorGrid" width="24" height="24" patternUnits="userSpaceOnUse">
+                <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#178596" strokeWidth="0.5" opacity="0.25" strokeDasharray="2,2" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#minorGrid)" />
+            <rect width="100%" height="100%" fill="url(#majorGrid)" />
+          </svg>
+
+          {/* Active Crosshair Guide Lines Passing Through the Dragged Field */}
+          {activeDragPos && (
+            <>
+              {/* Horizontal Guide Line across card */}
+              <div 
+                style={{ top: `${activeDragPos.top}px` }}
+                className="absolute left-0 right-0 h-[1px] bg-[#178596]/70 border-t border-dashed border-[#178596] shadow-xs"
+              />
+              {/* Vertical Guide Line across card */}
+              <div 
+                style={{ left: `${activeDragPos.left}px` }}
+                className="absolute top-0 bottom-0 w-[1px] bg-[#178596]/70 border-l border-dashed border-[#178596] shadow-xs"
+              />
+            </>
+          )}
+
+          {/* Floating HUD info indicator */}
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-md text-white text-[10px] font-semibold px-2.5 py-1 rounded-full shadow-lg border border-teal-500/40 flex items-center gap-1.5 z-30">
+            <Grid className="w-3 h-3 text-teal-400" />
+            <span>Grade Ativa (Passo: {GRID_STEP}px)</span>
+            {activeDragPos && (
+              <span className="text-teal-300 font-mono pl-1 border-l border-white/20">
+                X: {activeDragPos.left}px • Y: {activeDragPos.top}px
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* 1. NOME DO ESTUDANTE (Em cima da foto - Tamanho 15px) */}
       <DraggableField
         id="field-nome-container"
@@ -323,6 +397,8 @@ export const CieCardTextFields: React.FC<CieCardTextFieldsProps> = () => {
         onSaveText={(val) => handleSaveText('nome', val)}
         onCancelEdit={() => setActiveEditingField(null)}
         onUpdatePosition={(pos) => handleUpdatePosition('nome', pos)}
+        onDragStart={(k) => setDraggingField(k)}
+        onDragEnd={() => setDraggingField(null)}
       />
 
       {/* 2. LINHA 1: CPF / CIN */}
@@ -340,6 +416,8 @@ export const CieCardTextFields: React.FC<CieCardTextFieldsProps> = () => {
         onSaveText={(val) => handleSaveText('cpfCin', val)}
         onCancelEdit={() => setActiveEditingField(null)}
         onUpdatePosition={(pos) => handleUpdatePosition('cpfCin', pos)}
+        onDragStart={(k) => setDraggingField(k)}
+        onDragEnd={() => setDraggingField(null)}
       />
 
       {/* 3. LINHA 2: DATA DE NASCIMENTO */}
@@ -357,6 +435,8 @@ export const CieCardTextFields: React.FC<CieCardTextFieldsProps> = () => {
         onSaveText={(val) => handleSaveText('nasc', val)}
         onCancelEdit={() => setActiveEditingField(null)}
         onUpdatePosition={(pos) => handleUpdatePosition('nasc', pos)}
+        onDragStart={(k) => setDraggingField(k)}
+        onDragEnd={() => setDraggingField(null)}
       />
 
       {/* 4. LINHA 3: NOME DO CURSO */}
@@ -374,6 +454,8 @@ export const CieCardTextFields: React.FC<CieCardTextFieldsProps> = () => {
         onSaveText={(val) => handleSaveText('curso', val)}
         onCancelEdit={() => setActiveEditingField(null)}
         onUpdatePosition={(pos) => handleUpdatePosition('curso', pos)}
+        onDragStart={(k) => setDraggingField(k)}
+        onDragEnd={() => setDraggingField(null)}
       />
 
       {/* 5. LINHA 4: NOME DA INSTITUIÇÃO */}
@@ -391,6 +473,8 @@ export const CieCardTextFields: React.FC<CieCardTextFieldsProps> = () => {
         onSaveText={(val) => handleSaveText('instituicao', val)}
         onCancelEdit={() => setActiveEditingField(null)}
         onUpdatePosition={(pos) => handleUpdatePosition('instituicao', pos)}
+        onDragStart={(k) => setDraggingField(k)}
+        onDragEnd={() => setDraggingField(null)}
       />
 
       {/* 6. ANO (ex: 2026 - Em verde/teal estilizado, abaixo do QR Code) */}
@@ -408,6 +492,8 @@ export const CieCardTextFields: React.FC<CieCardTextFieldsProps> = () => {
         onSaveText={(val) => handleSaveText('ano', val)}
         onCancelEdit={() => setActiveEditingField(null)}
         onUpdatePosition={(pos) => handleUpdatePosition('ano', pos)}
+        onDragStart={(k) => setDraggingField(k)}
+        onDragEnd={() => setDraggingField(null)}
       />
 
       {/* 7. VALIDADE (ex: Validade: 31/03/2027) */}
@@ -425,6 +511,8 @@ export const CieCardTextFields: React.FC<CieCardTextFieldsProps> = () => {
         onSaveText={(val) => handleSaveText('validade', val)}
         onCancelEdit={() => setActiveEditingField(null)}
         onUpdatePosition={(pos) => handleUpdatePosition('validade', pos)}
+        onDragStart={(k) => setDraggingField(k)}
+        onDragEnd={() => setDraggingField(null)}
       />
 
       {/* Quick Reset Positions Button (Only visible in Edit Mode) */}
