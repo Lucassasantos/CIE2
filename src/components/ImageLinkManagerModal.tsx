@@ -9,7 +9,7 @@ import {
   Layers, 
   Home, 
   UserPlus, 
-  Wallet, 
+  IdCard, 
   Bell,
   HelpCircle,
   ExternalLink,
@@ -358,7 +358,7 @@ export const ImageLinkManagerModal: React.FC<ImageLinkManagerModalProps> = ({
                         : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
                     }`}
                   >
-                    <Wallet className="w-4 h-4 mb-1 text-teal-700" />
+                    <IdCard className="w-4 h-4 mb-1 text-teal-700" />
                     <div className="text-xs font-bold">Carteiras & Cartões</div>
                     <div className="text-[10px] text-slate-500">Fundo do cartão</div>
                   </button>

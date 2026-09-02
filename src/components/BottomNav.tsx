@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, UserPlus, Wallet, Bell } from 'lucide-react';
+import { Home, UserPlus, IdCard, Bell } from 'lucide-react';
 import { TabType } from '../types';
 import { EditableText } from './EditableText';
 
@@ -28,7 +28,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     {
       id: 'carteiras' as TabType,
       label: 'Carteiras',
-      icon: Wallet,
+      icon: IdCard,
     },
     {
       id: 'avisos' as TabType,
